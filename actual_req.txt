@@ -1,0 +1,8 @@
+pyobjc==9.0.1
+vosk
+py3-tts
+openai
+SpeechRecognition
+python-dotenv
+PyAudio
+setuptools
