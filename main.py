@@ -8,7 +8,6 @@ import os
 import subprocess
 import sounddevice
 
-
 load_dotenv()
 
 OPEN_AI_KEY = os.getenv("OPEN_AI_KEY")
@@ -23,7 +22,7 @@ SYSTEM_PROMPT = {
 stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 stt_model_large = Model('models/vosk-model-en-us-0.22-lgraph')
 
-engine = pyttsx3.init()
+# engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
 recognizer.vosk_model = stt_model_small
 recognizer.non_speaking_duration=0.2
@@ -31,6 +30,16 @@ vosk_recognizer = KaldiRecognizer(stt_model_small,16000)
 
 messages_log = [SYSTEM_PROMPT]
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 def create_user_msg(msg:str):
     return {"role":"user","content":msg}
@@ -54,16 +63,32 @@ def get_gpt_response(messages):
 
     return gpt_msg
 
+def print_header():
+    print(bcolors.FAIL + '''
+================================================================
+██████   ██████   ██████ ██   ██      ██████  ███████ 
+██   ██ ██    ██ ██      ██  ██      ██    ██ ██      
+██████  ██    ██ ██      █████       ██    ██ ███████ 
+██   ██ ██    ██ ██      ██  ██      ██    ██      ██ 
+██   ██  ██████   ██████ ██   ██      ██████  ███████ 
+    
+Version: 1.0.2024.1b
+Specimen: John
+HOST: Raspberry Pi 4B
+================================================================
+    ''' + bcolors.ENDC)
+
 #############################################################
 #############################################################
 
-print("######## READY ########")
+print_header()
+print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
 
 while True:
-    with speech_recognition.Microphone(device_index=3) as mic:
+    with speech_recognition.Microphone() as mic:
         recognizer.adjust_for_ambient_noise(mic,duration=0.5)
         audio = recognizer.listen(mic)
-        print("---- BEGIN EXCHANGE ----")
+        print("..VOICE DETECTED")
         print("..Start processing audio")
 
         heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
@@ -86,9 +111,9 @@ while True:
 
         print("... GPT response: {"+gpt_response+"}.")
         print("---- END EXCHANGE ----\n")
-        # subprocess.call(["say",gpt_response])
-        engine.say(gpt_response)
-        engine.runAndWait()
+        subprocess.call(["say",gpt_response])
+        # engine.say(gpt_response)
+        # engine.runAndWait()
 
         
         
