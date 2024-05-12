@@ -20,7 +20,7 @@ SYSTEM_PROMPT = {
 }
 
 stt_model_small = Model('models/vosk-model-small-en-us-0.15')
-stt_model_large = Model('models/vosk-model-en-us-0.22-lgraph')
+# stt_model_large = Model('models/vosk-model-en-us-0.22-lgraph')
 
 engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
