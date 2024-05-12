@@ -6,6 +6,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import subprocess
+import sounddevice
+
 
 load_dotenv()
 
@@ -21,7 +23,7 @@ SYSTEM_PROMPT = {
 stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 stt_model_large = Model('models/vosk-model-en-us-0.22-lgraph')
 
-# engine = pyttsx3.init()
+engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
 recognizer.vosk_model = stt_model_small
 recognizer.non_speaking_duration=0.2
@@ -52,19 +54,20 @@ def get_gpt_response(messages):
 
     return gpt_msg
 
-
 #############################################################
 #############################################################
 
 print("######## READY ########")
 
 while True:
-    with speech_recognition.Microphone() as mic:
+    with speech_recognition.Microphone(device_index=3) as mic:
         recognizer.adjust_for_ambient_noise(mic,duration=0.5)
         audio = recognizer.listen(mic)
         print("---- BEGIN EXCHANGE ----")
         print("..Start processing audio")
+
         heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
+
 
         if len(heard_text) == 0 or heard_text == "the":
             print(".. No phrases.")
@@ -83,9 +86,9 @@ while True:
 
         print("... GPT response: {"+gpt_response+"}.")
         print("---- END EXCHANGE ----\n")
-        subprocess.call(["say",gpt_response])
-        # engine.say(gpt_response)
-        # engine.runAndWait()
+        # subprocess.call(["say",gpt_response])
+        engine.say(gpt_response)
+        engine.runAndWait()
 
         
         
