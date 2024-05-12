@@ -22,7 +22,7 @@ SYSTEM_PROMPT = {
 stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 stt_model_large = Model('models/vosk-model-en-us-0.22-lgraph')
 
-# engine = pyttsx3.init()
+engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
 recognizer.vosk_model = stt_model_small
 recognizer.non_speaking_duration=0.2
@@ -40,6 +40,9 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+def clear_console():
+    os.system('clear')
 
 def create_user_msg(msg:str):
     return {"role":"user","content":msg}
@@ -64,8 +67,7 @@ def get_gpt_response(messages):
     return gpt_msg
 
 def print_header():
-    print(bcolors.FAIL + '''
-================================================================
+    print('''================================================================
 ██████   ██████   ██████ ██   ██      ██████  ███████ 
 ██   ██ ██    ██ ██      ██  ██      ██    ██ ██      
 ██████  ██    ██ ██      █████       ██    ██ ███████ 
@@ -75,8 +77,7 @@ def print_header():
 Version: 1.0.2024.1b
 Specimen: John
 HOST: Raspberry Pi 4B
-================================================================
-    ''' + bcolors.ENDC)
+================================================================''')
 
 #############################################################
 #############################################################
@@ -88,32 +89,36 @@ while True:
     with speech_recognition.Microphone() as mic:
         recognizer.adjust_for_ambient_noise(mic,duration=0.5)
         audio = recognizer.listen(mic)
-        print("..VOICE DETECTED")
-        print("..Start processing audio")
+        clear_console()
+        print_header()
+        print("---- BEGIN EXCHANGE ----")
+        print("EVENT: VOICE_DETECTED")
+        print("..Translating to rock language")
 
         heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
 
-
         if len(heard_text) == 0 or heard_text == "the":
-            print(".. No phrases.")
+            print(bcolors.WARNING+".. CANNOT TRANSLATE TO ROCK"+bcolors.ENDC)
             print("---- END EXCHANGE ----\n")
             continue
         
-        print("..Requesting heard: {"+heard_text+"}")
+        print("..Translated to rock: { "+heard_text+" }")
+        print("..Translating rock response")
+
         messages_log.append(create_user_msg(heard_text))
         gpt_response = get_gpt_response(messages_log)
         
 
         if (not gpt_response):
-            print("... GPT refuse.")
+            print("... Rock did not reply.")
             print("---- END EXCHANGE ----\n")
             continue
 
-        print("... GPT response: {"+gpt_response+"}.")
+        print("... Rock Response: {" +gpt_response+ "}.")
         print("---- END EXCHANGE ----\n")
-        subprocess.call(["say",gpt_response])
-        # engine.say(gpt_response)
-        # engine.runAndWait()
+        # subprocess.call(["say",gpt_response])
+        engine.say(gpt_response)
+        engine.runAndWait()
 
         
         
