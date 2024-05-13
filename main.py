@@ -10,6 +10,8 @@ import sounddevice
 import io
 import wave
 from datetime import datetime
+import threading
+import cv2
 
 load_dotenv()
 
@@ -87,6 +89,7 @@ HOST: Raspberry Pi 4B
 
 #############################################################
 #############################################################
+isRecording = False
 
 clear_console()
 print_header()
@@ -134,6 +137,9 @@ while True:
             log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"User: "+heard_text+"\n")
             log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"Rock: "+gpt_response+"\n")
         # subprocess.call(["say",gpt_response])
+
+        threading.Timer()
+
         engine.say(gpt_response)
         engine.runAndWait()
 

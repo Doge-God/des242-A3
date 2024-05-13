@@ -6,3 +6,5 @@ python-dotenv
 PyAudio
 setuptools
 sounddevice
+opencv-python
+soundfile
