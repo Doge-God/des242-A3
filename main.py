@@ -131,8 +131,8 @@ while True:
         print("Response: {" +gpt_response+ "}.")
 
         with open("conversation_log.txt",mode='a') as log_file:
-            log_file.write("User: "+datetime.now().isoformat(timespec="seconds")+heard_text+"\n")
-            log_file.write("Rock: "+gpt_response+"\n")
+            log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"User: "+heard_text+"\n")
+            log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"Rock: "+gpt_response+"\n")
         # subprocess.call(["say",gpt_response])
         engine.say(gpt_response)
         engine.runAndWait()
