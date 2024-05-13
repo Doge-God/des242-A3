@@ -81,7 +81,8 @@ def print_header():
 Version: 1.0.2024.1b
 Specimen: John
 HOST: Raspberry Pi 4B
-================================================================''')
+================================================================
+''')
 
 #############################################################
 #############################################################
@@ -103,19 +104,15 @@ while True:
             continue
         clear_console()
         print_header()
-        print("---- BEGIN EXCHANGE ----")
         print("EVENT: VOICE_DETECTED")
         print("..Translating to rock language")
 
         wav_bytes = audio.get_wav_data(convert_width=1)
         # heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
-        heard_text = open_ai_client.audio.transcriptions.create(file=("why.wav",audio.get_wav_data(convert_width=1)),model="whisper-1",response_format="text")
-
-        print(heard_text)
+        heard_text = open_ai_client.audio.transcriptions.create(file=("why.wav",audio.get_wav_data(convert_width=1)),language="en",model="whisper-1",response_format="text").strip()
 
         if len(heard_text) == 0 or heard_text == "the":
             print(bcolors.WARNING+".. CANNOT TRANSLATE TO ROCK"+bcolors.ENDC)
-            print("---- END EXCHANGE ----\n")
             continue
         
         print("..Translated to rock: { "+heard_text+" }")
@@ -126,12 +123,11 @@ while True:
         
 
         if (not gpt_response):
-            print("... Rock did not reply.")
-            print("---- END EXCHANGE ----\n")
+            print(bcolors.WARNING+"..Rock did not reply."+bcolors.ENDC)
             continue
-
-        print("... Rock Response: {" +gpt_response+ "}.")
-        print("---- END EXCHANGE ----\n")
+        
+        print(bcolors.OKGREEN +"..Translation Successful."+bcolors.ENDC)
+        print("Response: {" +gpt_response+ "}.")
         # subprocess.call(["say",gpt_response])
         engine.say(gpt_response)
         engine.runAndWait()
