@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 import os
 import subprocess
 import sounddevice
+import io
+import wave
 
 load_dotenv()
 
@@ -24,10 +26,11 @@ stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 
 engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
-recognizer.vosk_model = stt_model_small
+# recognizer.vosk_model = stt_model_small
 recognizer.non_speaking_duration=0.2
 
-vosk_recognizer = KaldiRecognizer(stt_model_small,16000)
+
+# vosk_recognizer = KaldiRecognizer(stt_model_small,16000)
 
 messages_log = [SYSTEM_PROMPT]
 
@@ -104,7 +107,11 @@ while True:
         print("EVENT: VOICE_DETECTED")
         print("..Translating to rock language")
 
-        heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
+        wav_bytes = audio.get_wav_data(convert_width=1)
+        # heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
+        heard_text = open_ai_client.audio.transcriptions.create(file=("why.wav",audio.get_wav_data(convert_width=1)),model="whisper-1",response_format="text")
+
+        print(heard_text)
 
         if len(heard_text) == 0 or heard_text == "the":
             print(bcolors.WARNING+".. CANNOT TRANSLATE TO ROCK"+bcolors.ENDC)
