@@ -9,6 +9,7 @@ import subprocess
 import sounddevice
 import io
 import wave
+from datetime import datetime
 
 load_dotenv()
 
@@ -128,6 +129,10 @@ while True:
         
         print(bcolors.OKGREEN +"..Translation Successful."+bcolors.ENDC)
         print("Response: {" +gpt_response+ "}.")
+
+        with open("conversation_log.txt",mode='a') as log_file:
+            log_file.write("User: "+datetime.now().isoformat(timespec="seconds")+heard_text+"\n")
+            log_file.write("Rock: "+gpt_response+"\n")
         # subprocess.call(["say",gpt_response])
         engine.say(gpt_response)
         engine.runAndWait()
