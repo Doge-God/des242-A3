@@ -22,7 +22,7 @@ SYSTEM_PROMPT = {
 stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 # stt_model_large = Model('models/vosk-model-en-us-0.22-lgraph')
 
-# engine = pyttsx3.init()
+engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
 recognizer.vosk_model = stt_model_small
 recognizer.non_speaking_duration=0.2
@@ -88,14 +88,15 @@ print_header()
 print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
 
 is_in_conversation = False
+speech_waiting_cnt = 0
 
 while True:
     with speech_recognition.Microphone() as mic:
-        print("new loop")
-        recognizer.adjust_for_ambient_noise(mic,duration=0.5)
+        recognizer.adjust_for_ambient_noise(mic,duration=1)
         try:
-            audio = recognizer.listen(mic,timeout=0.5)
+            audio = recognizer.listen(mic,timeout=1,phrase_time_limit=7)
         except speech_recognition.WaitTimeoutError:
+            speech_waiting_cnt = 0
             continue
         clear_console()
         print_header()
@@ -124,9 +125,9 @@ while True:
 
         print("... Rock Response: {" +gpt_response+ "}.")
         print("---- END EXCHANGE ----\n")
-        subprocess.call(["say",gpt_response])
-        # engine.say(gpt_response)
-        # engine.runAndWait()
+        # subprocess.call(["say",gpt_response])
+        engine.say(gpt_response)
+        engine.runAndWait()
 
         
         
