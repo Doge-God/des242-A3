@@ -14,11 +14,11 @@ class AudioRecorder():
 
         self.open = True
         self.file_name = file_name
-        self.channels = 1
+        self.channels = 2
         self.q = queue.Queue()
         
         # Get samplerate
-        device_info = sd.query_devices(2, 'input')
+        device_info = sd.query_devices(0, 'input')
         self.samplerate = int(device_info['default_samplerate'])
 
     def callback(self, indata, frames, time, status):
@@ -47,6 +47,17 @@ class AudioRecorder():
         audio_thread = threading.Thread(target=self.record)
         audio_thread.start()
 
+class AudioRecorder2():
+    def __init__(self,file_name):
+        self.open = True
+        self.file_name = file_name
+        self.channels = 2
+        self.q = queue.Queue()
+        
+        # Get samplerate
+        device_info = sd.query_devices(0, 'input')
+        self.samplerate = int(device_info['default_samplerate'])
+    pass
 
 class VideoRecorder():
     def __init__(self,filename):
@@ -56,14 +67,13 @@ class VideoRecorder():
         self.vid_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
         self.vid_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 600)
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        print(fourcc)
 
         width = int(self.vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH) + 0.5)
         height = int(self.vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT) + 0.5)
         size = (width, height)
 
         # then use here the actual resolution instead of the hardcoded one
-        print(filename+".avi")
+        # print(filename+".avi")
         self.writer = cv2.VideoWriter("{fn}.avi".format(fn=self.filename), fourcc, 24,size,True) 
 
     def record(self):

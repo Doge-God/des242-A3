@@ -12,29 +12,22 @@ import wave
 from datetime import datetime
 import threading
 import cv2
+import recorder
 
 load_dotenv()
 
 OPEN_AI_KEY = os.getenv("OPEN_AI_KEY")
 open_ai_client = OpenAI(api_key=OPEN_AI_KEY)
-
 #Bob is a rock that is a bit slow and cannot move around. Bob does not know much beside nature. Bob uses very simple language. Bob want to talk to people more but is quite slow at it.
 SYSTEM_PROMPT = { 
     "role": "system",
     "content": "John is a rock that is a bit slow and cannot move around. John does not know much beside nature. John uses very simple language. John want to talk to people more but is quite slow at it.. The user's response might be irrelevant, missing information or is not directed at you, in this case reply [IGNORE]."
 }
-
-stt_model_small = Model('models/vosk-model-small-en-us-0.15')
-# stt_model_large = Model('models/vosk-model-en-us-0.22-lgraph')
-
+# stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
 # recognizer.vosk_model = stt_model_small
 recognizer.non_speaking_duration=0.2
-
-
-# vosk_recognizer = KaldiRecognizer(stt_model_small,16000)
-
 messages_log = [SYSTEM_PROMPT]
 
 class bcolors:
@@ -87,19 +80,30 @@ HOST: Raspberry Pi 4B
 ================================================================
 ''')
 
+############ RECORDING UTILITY ####################
+
+interaction_recorder = None
+recording_stopper = None
+
+def stop_recording():
+    global interaction_recorder
+    global recording_stopper
+    interaction_recorder.stop()
+    interaction_recorder = None
+    recording_stopper = None
+
 #############################################################
 #############################################################
-isRecording = False
 
 clear_console()
 print_header()
 print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
+# threading.Timer(10,lambda:interaction_recorder.stop())
 
-is_in_conversation = False
-speech_waiting_cnt = 0
 
-while True:
-    with speech_recognition.Microphone() as mic:
+with speech_recognition.Microphone() as mic:
+    
+    while True:
         recognizer.adjust_for_ambient_noise(mic,duration=1)
         try:
             audio = recognizer.listen(mic,timeout=1,phrase_time_limit=7)
@@ -136,10 +140,18 @@ while True:
         with open("conversation_log.txt",mode='a') as log_file:
             log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"User: "+heard_text+"\n")
             log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"Rock: "+gpt_response+"\n")
+
+        # if not recording, start
+        if not interaction_recorder:
+            interaction_recorder = recorder.Recorder("/Users/futianzhou/Documents/Projects/des242-A3/interaction_logs")
+            recording_stopper = threading.Timer(15,stop_recording)
+            recording_stopper.start()
+        else:
+            recording_stopper.cancel()
+            recording_stopper = threading.Timer(15,stop_recording)
+            recording_stopper.start()
+        
         # subprocess.call(["say",gpt_response])
-
-        threading.Timer()
-
         engine.say(gpt_response)
         engine.runAndWait()
 
