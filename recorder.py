@@ -4,13 +4,16 @@ import queue
 import sounddevice as sd
 import soundfile as sf
 import cv2
+from datetime import datetime
+import os
+import time
 
 class AudioRecorder():
 
-    def __init__(self):
+    def __init__(self,file_name):
 
         self.open = True
-        self.file_name = 'default_name' # This should be replaces with a value given in self.start()
+        self.file_name = file_name
         self.channels = 1
         self.q = queue.Queue()
         
@@ -36,18 +39,19 @@ class AudioRecorder():
 
     def stop(self):
         self.open = False
+        time.sleep(0.5)
 
-    def start(self, file_name, file_dir):
+    def start(self):
         self.open = True
-        self.file_name = '{}/{}.wav'.format(file_dir, file_name)
+        self.file_name = '{}.wav'.format(self.file_name)
         audio_thread = threading.Thread(target=self.record)
         audio_thread.start()
 
 
 class VideoRecorder():
-    def __init__(self):
+    def __init__(self,filename):
         self.open = True
-        self.filename = 'FILENAME'
+        self.filename = filename
         self.vid_cap = cv2.VideoCapture(0)
         self.vid_cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
         self.vid_cap.set(cv2.CAP_PROP_FRAME_WIDTH, 600)
@@ -59,7 +63,8 @@ class VideoRecorder():
         size = (width, height)
 
         # then use here the actual resolution instead of the hardcoded one
-        self.writer = cv2.VideoWriter('recording.avi', fourcc, 24,size,True) 
+        print(filename+".avi")
+        self.writer = cv2.VideoWriter("{fn}.avi".format(fn=self.filename), fourcc, 24,size,True) 
 
     def record(self):
         while self.open == True:
@@ -68,6 +73,7 @@ class VideoRecorder():
     
     def stop(self):
         self.open = False
+        time.sleep(0.5)
         self.vid_cap.release()
         self.writer.release()
 
@@ -75,3 +81,18 @@ class VideoRecorder():
         self.open = True
         video_thread = threading.Thread(target=self.record)
         video_thread.start()
+
+class Recorder():
+    def __init__(self,interaction_log_path:str):
+        self.log_time_id = datetime.now().strftime("%a|%m-%d-%H:%M:%S")
+
+        self.video_recorder = VideoRecorder("./interaction_logs/"+self.log_time_id)
+        self.audio_recorder = AudioRecorder("./interaction_logs/"+self.log_time_id)
+    
+    def start(self):
+        self.video_recorder.start()
+        self.audio_recorder.start()
+
+    def stop(self):
+        self.video_recorder.stop()
+        self.audio_recorder.stop()

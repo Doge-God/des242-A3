@@ -13,10 +13,10 @@ import time
 #     if desc["name"] == "record":
 #         print ("DEVICE: %s  INDEX:  %s  RATE:  %s " %  (desc["name"], index,  int(desc["defaultSampleRate"])))
 
-recording = recorder.VideoRecorder()
-recording.start()
-time.sleep(5)
-recording.stop()
+recorder = recorder.Recorder("/Users/futianzhou/Documents/Projects/des242-A3/interaction_logs")
+recorder.start()
+time.sleep(2)
+recorder.stop()
 
 # engine = pyttsx3.init()
 # engine.say("hello, this is a test. My name is John. John is rock. Rock cannot move.")
