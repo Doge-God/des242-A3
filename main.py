@@ -101,12 +101,12 @@ print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
 # threading.Timer(10,lambda:interaction_recorder.stop())
 
 
-with speech_recognition.Microphone() as mic:
+with speech_recognition.Microphone(device_index=2) as mic:
     
     while True:
-        recognizer.adjust_for_ambient_noise(mic,duration=1)
+        recognizer.adjust_for_ambient_noise(mic,duration=0.5)
         try:
-            audio = recognizer.listen(mic,timeout=1,phrase_time_limit=7)
+            audio = recognizer.listen(mic,timeout=1,phrase_time_limit=10)
         except speech_recognition.WaitTimeoutError:
             speech_waiting_cnt = 0
             continue
@@ -117,7 +117,12 @@ with speech_recognition.Microphone() as mic:
 
         wav_bytes = audio.get_wav_data(convert_width=1)
         # heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
-        heard_text = open_ai_client.audio.transcriptions.create(file=("why.wav",audio.get_wav_data(convert_width=1)),language="en",model="whisper-1",response_format="text").strip()
+        heard_text = open_ai_client.audio.transcriptions.create(
+            file=("why.wav",audio.get_wav_data(convert_width=1)),
+            language="en",model="whisper-1",
+            response_format="text",
+            prompt=''
+            ).strip()
 
         if len(heard_text) == 0 or heard_text == "the":
             print(bcolors.WARNING+".. CANNOT TRANSLATE TO ROCK"+bcolors.ENDC)
@@ -143,12 +148,13 @@ with speech_recognition.Microphone() as mic:
 
         # if not recording, start
         if not interaction_recorder:
-            interaction_recorder = recorder.Recorder("/Users/futianzhou/Documents/Projects/des242-A3/interaction_logs")
-            recording_stopper = threading.Timer(15,stop_recording)
+            interaction_recorder = recorder.Recorder("/home/rock-os/Documents/des242-A3/interaction_logs")
+            interaction_recorder.start()
+            recording_stopper = threading.Timer(10,stop_recording)
             recording_stopper.start()
         else:
             recording_stopper.cancel()
-            recording_stopper = threading.Timer(15,stop_recording)
+            recording_stopper = threading.Timer(10,stop_recording)
             recording_stopper.start()
         
         # subprocess.call(["say",gpt_response])
