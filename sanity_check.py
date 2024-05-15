@@ -18,7 +18,7 @@ import sounddevice as sd
 print(sd.query_devices())
 recorder = recorder.Recorder("/Users/futianzhou/Documents/Projects/des242-A3/interaction_logs")
 recorder.start()
-time.sleep(2)
+time.sleep(5)
 recorder.stop()
 
 
