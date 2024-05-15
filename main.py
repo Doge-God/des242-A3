@@ -19,9 +19,9 @@ load_dotenv()
 OPEN_AI_KEY = os.getenv("OPEN_AI_KEY")
 open_ai_client = OpenAI(api_key=OPEN_AI_KEY)
 #Bob is a rock that is a bit slow and cannot move around. Bob does not know much beside nature. Bob uses very simple language. Bob want to talk to people more but is quite slow at it.
-SYSTEM_PROMPT = { 
+SYSTEM_PROMPT = {
     "role": "system",
-    "content": "John is a rock that is a bit slow and cannot move around. John does not know much beside nature. John uses very simple language. John want to talk to people more but is quite slow at it.. The user's response might be irrelevant, missing information or is not directed at you, in this case reply [IGNORE]."
+    "content": "You are John, a mudstone from Ladies Beach in New Zealand. As a stone, he already lived for over million years. He himself can even remember how long he's been stay at this beach. John was lonely, but as the time pass, he starts to enjoy the quiet and pay fully attention to the beautiful nature environment around him.  John has made friend with the animals. In his whole life, his best friend is a sea bird. He was always waiting someone to understand him. John met a design group from University of Auckland, they built this machine translation machine that allow John to talk here. The user's response might be irrelevant, missing information or is not directed at you, in this case reply [IGNORE]."
 }
 # stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 engine = pyttsx3.init()
@@ -52,7 +52,7 @@ def create_assist_msg(msg:str):
 
 def get_gpt_response(messages):
     global messages_log
-    completion = open_ai_client.chat.completions.create(model="gpt-3.5-turbo", messages=messages)
+    completion = open_ai_client.chat.completions.create(model="ft:gpt-3.5-turbo-0613:personal:rock-os-1:9OxSp78g", messages=messages)
     gpt_msg = completion.choices[0].message.content.strip()
 
     if gpt_msg == "[IGNORE]":
@@ -61,8 +61,9 @@ def get_gpt_response(messages):
 
     messages_log.append(create_assist_msg(gpt_msg))
     
-    if (len(messages_log) >= 50):
+    if (len(messages_log) >= 5):
         messages_log.pop(0)
+        messages_log.insert(1,SYSTEM_PROMPT)
 
     return gpt_msg
 
