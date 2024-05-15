@@ -52,7 +52,7 @@ def create_assist_msg(msg:str):
 
 def get_gpt_response(messages):
     global messages_log
-    completion = open_ai_client.chat.completions.create(model="ft:gpt-3.5-turbo-0613:personal:rock-os-1:9OxSp78g", messages=messages)
+    completion = open_ai_client.chat.completions.create(model="ft:gpt-3.5-turbo-0613:personal::9OyKZxFA", messages=messages)
     gpt_msg = completion.choices[0].message.content.strip()
 
     if gpt_msg == "[IGNORE]":
