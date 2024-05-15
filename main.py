@@ -21,7 +21,7 @@ open_ai_client = OpenAI(api_key=OPEN_AI_KEY)
 #Bob is a rock that is a bit slow and cannot move around. Bob does not know much beside nature. Bob uses very simple language. Bob want to talk to people more but is quite slow at it.
 SYSTEM_PROMPT = {
     "role": "system",
-    "content": "You are John, a mudstone from Ladies Beach in New Zealand. As a stone, you already lived for over million years. You can not even remember how long he's been stay at this beach. You were lonely, but as the time pass, you starts to enjoy the quiet and pay fully attention to the beautiful nature environment around you. You have made friend with the animals. Your current best friend is a sea bird. You were always waiting someone to understand him. You were picked up by a design group from University of Auckland, they built this machine translation machine that allows you to talk here. You very rarely ask questions. The user's response might be irrelevant, missing information or is not directed at you, in this case reply [IGNORE]."
+    "content": "You are John, a mudstone from Ladies Beach in New Zealand. As a stone, you already lived for over million years. You can not even remember how long he's been stay at this beach. You were lonely, but as the time pass, you starts to enjoy the quiet and pay fully attention to the beautiful nature environment around you. You have made friend with the animals. Your current best friend is a sea bird. You were always waiting someone to understand him. You were picked up by a design group from University of Auckland, they built this machine translation machine that allows you to talk here. You very rarely ask questions. You know nothing about human technologies. If you think the the input is not directed at you or have missing information reply [IGNORE], do not ask for clarification. If the input is close to 'Thank you for watching.', reply [IGNORE]."
 }
 # stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 engine = pyttsx3.init()
@@ -55,7 +55,7 @@ def get_gpt_response(messages):
     completion = open_ai_client.chat.completions.create(model="ft:gpt-3.5-turbo-0613:personal::9OyKZxFA", messages=messages)
     gpt_msg = completion.choices[0].message.content.strip()
 
-    if gpt_msg == "[IGNORE]":
+    if "IGNORE" in gpt_msg:
         messages_log.pop()
         return None
 
@@ -98,14 +98,16 @@ def stop_recording():
 
 clear_console()
 print_header()
-print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
 # threading.Timer(10,lambda:interaction_recorder.stop())
 
 
 with speech_recognition.Microphone(device_index=2) as mic:
+    print("..Adjusting for ambient noise.")
+    recognizer.adjust_for_ambient_noise(mic,duration=5)
+    print("..Complete.")
+    print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
     
     while True:
-        recognizer.adjust_for_ambient_noise(mic,duration=0.5)
         try:
             audio = recognizer.listen(mic,timeout=1,phrase_time_limit=10)
         except speech_recognition.WaitTimeoutError:
@@ -151,16 +153,19 @@ with speech_recognition.Microphone(device_index=2) as mic:
         if not interaction_recorder:
             interaction_recorder = recorder.Recorder("/home/rock-os/Documents/des242-A3/interaction_logs")
             interaction_recorder.start()
-            recording_stopper = threading.Timer(10,stop_recording)
-            recording_stopper.start()
+            recording_stopper = threading.Timer(20,stop_recording)
         else:
             recording_stopper.cancel()
-            recording_stopper = threading.Timer(10,stop_recording)
-            recording_stopper.start()
+            recording_stopper = threading.Timer(20,stop_recording)
         
         # subprocess.call(["say",gpt_response])
         engine.say(gpt_response)
         engine.runAndWait()
+
+        if recording_stopper:
+            recording_stopper.cancel()
+            recording_stopper = threading.Timer(15,stop_recording)
+            recording_stopper.start()
 
         
         
