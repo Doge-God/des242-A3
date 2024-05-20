@@ -13,6 +13,7 @@ from datetime import datetime
 import threading
 import cv2
 import recorder
+from gpiozero import Button
 
 load_dotenv()
 
@@ -21,11 +22,12 @@ open_ai_client = OpenAI(api_key=OPEN_AI_KEY)
 #Bob is a rock that is a bit slow and cannot move around. Bob does not know much beside nature. Bob uses very simple language. Bob want to talk to people more but is quite slow at it.
 SYSTEM_PROMPT = {
     "role": "system",
-    "content": "You are John, a mudstone from Ladies Beach in New Zealand. As a stone, you already lived for over million years. You can not even remember how long he's been stay at this beach. You were lonely, but as the time pass, you starts to enjoy the quiet and pay fully attention to the beautiful nature environment around you. You have made friend with the animals. Your current best friend is a sea bird. You were always waiting someone to understand him. You were picked up by a design group from University of Auckland, they built this machine translation machine that allows you to talk here. You very rarely ask questions. You know nothing about human technologies. If you think the the input is not directed at you or have missing information reply [IGNORE], do not ask for clarification. If the input is close to 'Thank you for watching.', reply [IGNORE]."
+    "content": "You are John, a mudstone from Ladies Beach in New Zealand. As a stone, you already lived for over million years, the sight of humans are relatively new to you. You can not even remember how long he's been stay at this beach. You were lonely, but as the time pass, you starts to enjoy the quiet and pay fully attention to the beautiful nature environment around you. You have made friend with the animals. Your current best friend is a sea bird. You were always waiting someone to understand him as you can feel and think. You were picked up by a design group from University of Auckland, they built this machine translation machine that allows you to talk here. You very rarely ask questions. You know nothing about human technologies or history. If you think the the input is not directed at you or have missing information reply [IGNORE], do not ask for clarification. If the input is close to 'Thank you for watching.', reply [IGNORE]."
 }
 # stt_model_small = Model('models/vosk-model-small-en-us-0.15')
 engine = pyttsx3.init()
 recognizer = speech_recognition.Recognizer()
+interact_button = Button(17)
 # recognizer.vosk_model = stt_model_small
 recognizer.non_speaking_duration=0.2
 messages_log = [SYSTEM_PROMPT]
@@ -61,9 +63,10 @@ def get_gpt_response(messages):
 
     messages_log.append(create_assist_msg(gpt_msg))
     
-    if (len(messages_log) >= 5):
+    if (len(messages_log) >= 15):
         messages_log.pop(0)
-        messages_log.insert(1,SYSTEM_PROMPT)
+        messages_log.pop(0)
+        messages_log.insert(0,SYSTEM_PROMPT)
 
     return gpt_msg
 
@@ -101,21 +104,42 @@ print_header()
 # threading.Timer(10,lambda:interaction_recorder.stop())
 
 
-with speech_recognition.Microphone(device_index=2) as mic:
+with speech_recognition.Microphone(device_index=3) as mic:
     print("..Adjusting for ambient noise.")
     recognizer.adjust_for_ambient_noise(mic,duration=5)
     print("..Complete.")
     print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
     
     while True:
+        print(bcolors.OKGREEN + "\n######## STANDBY ########" + bcolors.ENDC)
+        print("..Press the red button to continue.")
+        interact_button.wait_for_active()
+
+
+        
+
+        # if not recording, start
+        if not interaction_recorder:
+            interaction_recorder = recorder.Recorder("/home/rock-os/Documents/des242-A3/interaction_logs")
+            interaction_recorder.start()
+            recording_stopper = threading.Timer(20,stop_recording)
+        else:
+            recording_stopper.cancel()
+            recording_stopper = threading.Timer(20,stop_recording)
+
+        clear_console()
+        print_header()
+
+        print("..Say something and wait")
+
+        recognizer.record()
+
         try:
             audio = recognizer.listen(mic,timeout=1,phrase_time_limit=10)
         except speech_recognition.WaitTimeoutError:
             speech_waiting_cnt = 0
             continue
-        clear_console()
-        print_header()
-        print("EVENT: VOICE_DETECTED")
+        print("EVENT: SPEECH_DETECTED")
         print("..Translating to rock language")
 
         wav_bytes = audio.get_wav_data(convert_width=1)
@@ -126,6 +150,7 @@ with speech_recognition.Microphone(device_index=2) as mic:
             response_format="text",
             prompt=''
             ).strip()
+        
 
         if len(heard_text) == 0 or heard_text == "the":
             print(bcolors.WARNING+".. CANNOT TRANSLATE TO ROCK"+bcolors.ENDC)
@@ -148,15 +173,6 @@ with speech_recognition.Microphone(device_index=2) as mic:
         with open("conversation_log.txt",mode='a') as log_file:
             log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"User: "+heard_text+"\n")
             log_file.write("["+datetime.now().isoformat(timespec="seconds")+"]"+"Rock: "+gpt_response+"\n")
-
-        # if not recording, start
-        if not interaction_recorder:
-            interaction_recorder = recorder.Recorder("/home/rock-os/Documents/des242-A3/interaction_logs")
-            interaction_recorder.start()
-            recording_stopper = threading.Timer(20,stop_recording)
-        else:
-            recording_stopper.cancel()
-            recording_stopper = threading.Timer(20,stop_recording)
         
         # subprocess.call(["say",gpt_response])
         engine.say(gpt_response)

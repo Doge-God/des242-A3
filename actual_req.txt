@@ -8,3 +8,5 @@ setuptools
 sounddevice
 opencv-python
 soundfile
+gpiozero
+lgpio

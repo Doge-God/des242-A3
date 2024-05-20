@@ -18,7 +18,7 @@ class AudioRecorder():
         self.q = queue.Queue()
         
         # Get samplerate
-        device_info = sd.query_devices(3, 'input')
+        device_info = sd.query_devices(2, 'input')
         self.samplerate = int(device_info['default_samplerate'])
 
     def callback(self, indata, frames, time, status):
@@ -31,7 +31,7 @@ class AudioRecorder():
     def record(self):
         with sf.SoundFile(self.file_name, mode='x', samplerate=self.samplerate,
                       channels=self.channels) as file:
-            with sd.InputStream(device=3,samplerate=self.samplerate,
+            with sd.InputStream(device=2,samplerate=self.samplerate,
                                 channels=self.channels, callback=self.callback):
 
                 while(self.open == True):
@@ -84,7 +84,7 @@ class VideoRecorder():
 
 class Recorder():
     def __init__(self,interaction_log_path:str):
-        self.log_time_id = datetime.now().strftime("%a|%m-%d-%H:%M:%S")
+        self.log_time_id = datetime.now().strftime("%a-%m-%d-%H%M%S")
         self.video_recorder = VideoRecorder("./interaction_logs/"+self.log_time_id)
         self.audio_recorder = AudioRecorder("./interaction_logs/"+self.log_time_id)
     
