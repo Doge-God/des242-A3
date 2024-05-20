@@ -1,3 +1,4 @@
+import collections
 import speech_recognition
 import pyttsx3
 from vosk import Model, KaldiRecognizer
@@ -115,8 +116,15 @@ with speech_recognition.Microphone(device_index=3) as mic:
         print("..Press the red button to continue.")
         interact_button.wait_for_active()
 
+        frames = collections.deque()
 
+        while True:
+            buffer = mic.stream.read(mic.CHUNK)
+            if len(buffer) == 0: break  
+            frames.append(buffer)
+            if not interact_button.is_active: break
         
+        collected_audio = AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
 
         # if not recording, start
         if not interaction_recorder:
@@ -131,8 +139,6 @@ with speech_recognition.Microphone(device_index=3) as mic:
         print_header()
 
         print("..Say something and wait")
-
-        recognizer.record()
 
         try:
             audio = recognizer.listen(mic,timeout=1,phrase_time_limit=10)
