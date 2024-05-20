@@ -1,5 +1,6 @@
 import collections
 import speech_recognition
+from speech_recognition import AudioData
 import pyttsx3
 from vosk import Model, KaldiRecognizer
 import json
@@ -113,18 +114,13 @@ with speech_recognition.Microphone(device_index=3) as mic:
     
     while True:
         print(bcolors.OKGREEN + "\n######## STANDBY ########" + bcolors.ENDC)
-        print("..Press the red button to continue.")
+        print("..Hold red button to say say new sentence.")
         interact_button.wait_for_active()
 
-        frames = collections.deque()
+        clear_console()
+        print_header()
 
-        while True:
-            buffer = mic.stream.read(mic.CHUNK)
-            if len(buffer) == 0: break  
-            frames.append(buffer)
-            if not interact_button.is_active: break
-        
-        collected_audio = AudioData(frame_data, source.SAMPLE_RATE, source.SAMPLE_WIDTH)
+        print(".. Started new exchange.")
 
         # if not recording, start
         if not interaction_recorder:
@@ -135,18 +131,31 @@ with speech_recognition.Microphone(device_index=3) as mic:
             recording_stopper.cancel()
             recording_stopper = threading.Timer(20,stop_recording)
 
-        clear_console()
-        print_header()
+        frames = collections.deque()
 
-        print("..Say something and wait")
+        while True:
+            buffer = mic.stream.read(mic.CHUNK)
+            if len(buffer) == 0: break  
+            frames.append(buffer)
+            if not interact_button.is_active: break
+        
+        frame_data = b"".join(frames)
+        audio = AudioData(frame_data, mic.SAMPLE_RATE, mic.SAMPLE_WIDTH)
 
-        try:
-            audio = recognizer.listen(mic,timeout=1,phrase_time_limit=10)
-        except speech_recognition.WaitTimeoutError:
-            speech_waiting_cnt = 0
-            continue
-        print("EVENT: SPEECH_DETECTED")
-        print("..Translating to rock language")
+        print("..Audio collected.")
+        print("..Translating to rock language.")
+
+        
+
+        # print("..Say something and wait")
+
+        # try:
+        #     audio = recognizer.listen(mic,timeout=1,phrase_time_limit=10)
+        # except speech_recognition.WaitTimeoutError:
+        #     speech_waiting_cnt = 0
+        #     continue
+        # print("EVENT: SPEECH_DETECTED")
+        # print("..Translating to rock language")
 
         wav_bytes = audio.get_wav_data(convert_width=1)
         # heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
