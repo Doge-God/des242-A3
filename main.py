@@ -2,18 +2,11 @@ import collections
 import speech_recognition
 from speech_recognition import AudioData
 import pyttsx3
-from vosk import Model, KaldiRecognizer
-import json
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-import subprocess
-import sounddevice
-import io
-import wave
 from datetime import datetime
 import threading
-import cv2
 import recorder
 from gpiozero import Button
 
@@ -108,19 +101,19 @@ print_header()
 
 with speech_recognition.Microphone(device_index=3) as mic:
     print("..Adjusting for ambient noise.")
-    recognizer.adjust_for_ambient_noise(mic,duration=5)
+    recognizer.adjust_for_ambient_noise(mic,duration=3)
     print("..Complete.")
     print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
     
     while True:
         print(bcolors.OKGREEN + "\n######## STANDBY ########" + bcolors.ENDC)
-        print("..Hold red button to say say new sentence.")
+        print("..Press the red button once to start a new sentence")
         interact_button.wait_for_active()
 
         clear_console()
         print_header()
 
-        print(".. Started new exchange.")
+        print("..Say something and wait")
 
         # if not recording, start
         if not interaction_recorder:
@@ -131,16 +124,22 @@ with speech_recognition.Microphone(device_index=3) as mic:
             recording_stopper.cancel()
             recording_stopper = threading.Timer(20,stop_recording)
 
-        frames = collections.deque()
+        # frames = collections.deque()
 
-        while True:
-            buffer = mic.stream.read(mic.CHUNK)
-            if len(buffer) == 0: break  
-            frames.append(buffer)
-            if not interact_button.is_active: break
+        # while True:
+        #     buffer = mic.stream.read(mic.CHUNK)
+        #     if len(buffer) == 0: break  
+        #     frames.append(buffer)
+        #     if not interact_button.is_active: break
         
-        frame_data = b"".join(frames)
-        audio = AudioData(frame_data, mic.SAMPLE_RATE, mic.SAMPLE_WIDTH)
+        # frame_data = b"".join(frames)
+        # audio = AudioData(frame_data, mic.SAMPLE_RATE, mic.SAMPLE_WIDTH)
+        try:
+            audio = recognizer.listen(mic,timeout=5,phrase_time_limit=15)
+        except Exception as e:
+            clear_console()
+            print_header()
+            continue;
 
         print("..Audio collected.")
         print("..Translating to rock language.")

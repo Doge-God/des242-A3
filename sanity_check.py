@@ -1,3 +1,4 @@
+import collections
 import pyttsx3
 import subprocess
 import pyaudio
@@ -23,23 +24,34 @@ print(sd.query_devices())
 # engine.runAndWait()
 # recorder.stop()
 
-from gpiozero import Button
-from time import sleep
+# from gpiozero import Button
+# from time import sleep
 
-button = Button(17)
-print("waiting")
-button.wait_for_active()
-while button.active_time:
-    sound_recorded = sd.rec(1)
-button.wait_for_inactive()
-sd.stop()
-sd.play(sound_recorded)
+# button = Button(17)
+# print("waiting")
+# button.wait_for_active()
+# while button.active_time:
+#     sound_recorded = sd.rec(1)
+# button.wait_for_inactive()
+# sd.stop()
+# sd.play(sound_recorded)
+
+# while True:
+#     if button.is_pressed:
+#         print("Pressed")
+#     else:
+#         print("Released")
+#     sleep(1)
+
+rames = collections.deque()
 
 while True:
-    if button.is_pressed:
-        print("Pressed")
-    else:
-        print("Released")
-    sleep(1)
+    buffer = mic.stream.read(mic.CHUNK)
+    if len(buffer) == 0: break  
+    frames.append(buffer)
+    if not interact_button.is_active: break
+
+frame_data = b"".join(frames)
+audio = AudioData(frame_data, mic.SAMPLE_RATE, mic.SAMPLE_WIDTH)
 
 
