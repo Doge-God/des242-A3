@@ -1,4 +1,0 @@
-[2024-05-21T17:14:08]User: How are you doing?
-[2024-05-21T17:14:08]Rock: I am a rock. I am here. I am talking to you. This is new. I am doing well. Thank you.
-[2024-05-21T17:20:23]User: Yeah. Yeah.
-[2024-05-21T17:20:23]Rock: Ignore.

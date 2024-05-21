@@ -73,7 +73,7 @@ def print_header():
 ██   ██ ██    ██ ██      ██  ██      ██    ██      ██ 
 ██   ██  ██████   ██████ ██   ██      ██████  ███████ 
     
-Version: 1.0.2024.1b
+Version: 2.0.0
 Specimen: John
 HOST: Raspberry Pi 4B
 ================================================================
@@ -101,19 +101,19 @@ print_header()
 
 with speech_recognition.Microphone(device_index=3) as mic:
     print("..Adjusting for ambient noise.")
-    recognizer.adjust_for_ambient_noise(mic,duration=3)
+    recognizer.adjust_for_ambient_noise(mic,duration=0.5)
     print("..Complete.")
     print(bcolors.OKGREEN + "######## READY ########" + bcolors.ENDC)
     
     while True:
         print(bcolors.OKGREEN + "\n######## STANDBY ########" + bcolors.ENDC)
-        print("..Press the red button once to start a new sentence")
+        print("..Hold the red button to speak.")
         interact_button.wait_for_active()
 
         clear_console()
         print_header()
 
-        print("..Say something and wait")
+        print("..Collecting audio.")
 
         # if not recording, start
         if not interaction_recorder:
@@ -123,43 +123,33 @@ with speech_recognition.Microphone(device_index=3) as mic:
         else:
             recording_stopper.cancel()
             recording_stopper = threading.Timer(20,stop_recording)
+        frames = collections.deque()
 
-        # frames = collections.deque()
-
-        # while True:
-        #     buffer = mic.stream.read(mic.CHUNK)
-        #     if len(buffer) == 0: break  
-        #     frames.append(buffer)
-        #     if not interact_button.is_active: break
+        while True:
+            buffer = mic.stream.read(mic.CHUNK)
+            if len(buffer) == 0: break  
+            frames.append(buffer)
+            if not interact_button.is_active: break
         
-        # frame_data = b"".join(frames)
-        # audio = AudioData(frame_data, mic.SAMPLE_RATE, mic.SAMPLE_WIDTH)
-        try:
-            audio = recognizer.listen(mic,timeout=5,phrase_time_limit=15)
-        except Exception as e:
-            clear_console()
-            print_header()
-            continue;
+        frame_data = b"".join(frames)
+        audio = AudioData(frame_data, mic.SAMPLE_RATE,sample_width=mic.SAMPLE_WIDTH)
+        # try:
+        #     audio = recognizer.listen(mic,timeout=5,phrase_time_limit=15)
+        # except Exception as e:
+        #     clear_console()
+        #     print_header()
+        #     continue;
 
         print("..Audio collected.")
         print("..Translating to rock language.")
 
-        
-
-        # print("..Say something and wait")
-
-        # try:
-        #     audio = recognizer.listen(mic,timeout=1,phrase_time_limit=10)
-        # except speech_recognition.WaitTimeoutError:
-        #     speech_waiting_cnt = 0
-        #     continue
-        # print("EVENT: SPEECH_DETECTED")
-        # print("..Translating to rock language")
-
         wav_bytes = audio.get_wav_data(convert_width=1)
-        # heard_text = json.loads(recognizer.recognize_vosk(audio))['text'].strip()
+        # with open('sanity_check.wav',mode='bx') as file:
+        #     file.write(wav_bytes)
+        # file.close()
+
         heard_text = open_ai_client.audio.transcriptions.create(
-            file=("why.wav",audio.get_wav_data(convert_width=1)),
+            file=("why.wav",wav_bytes),
             language="en",model="whisper-1",
             response_format="text",
             prompt=''
@@ -198,14 +188,3 @@ with speech_recognition.Microphone(device_index=3) as mic:
             recording_stopper.start()
 
         
-        
-
-
-# audio_cap = pyaudio.PyAudio()
-# stream = audio_cap.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
-# stream.start_stream()
-
-# while True:
-#     data = stream.read(4096)
-#     if(vosk_recognizer.AcceptWaveform(data)):
-#         print(vosk_recognizer.Result())
